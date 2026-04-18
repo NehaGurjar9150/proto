@@ -1,55 +1,94 @@
 import { createServer } from 'http';
+import { createReadStream, existsSync } from 'fs';
+import { resolve, extname } from 'path';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
+const CLIENT_DIR = resolve(__dirname, 'dist/client');
 
-// Import the entry point
-let handler;
-try {
-  const module = await import('./dist/server/index.js');
-  handler = module.default;
-  console.log('✅ Handler loaded successfully');
-} catch (err) {
-  console.error('❌ Failed to load handler:', err);
-  process.exit(1);
+// MIME types
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
+  '.pdf': 'application/pdf',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+};
+
+function getMimeType(filePath) {
+  const ext = extname(filePath).toLowerCase();
+  return MIME_TYPES[ext] || 'application/octet-stream';
 }
 
-// Create HTTP server
 const server = createServer(async (req, res) => {
   try {
-    const url = new URL(req.url || '/', `http://${req.headers.host}`);
-    
-    // Create a Web-compatible request
-    let body = null;
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      body = req;
+    const parsedUrl = new URL(req.url || '/', `http://${req.headers.host}`);
+    let pathname = decodeURIComponent(parsedUrl.pathname);
+
+    // Remove trailing slash (except for root)
+    if (pathname !== '/' && pathname.endsWith('/')) {
+      pathname = pathname.slice(0, -1);
     }
 
-    const webRequest = new Request(url, {
-      method: req.method,
-      headers: Object.fromEntries(
-        Object.entries(req.headers).map(([k, v]) => [k, String(v)])
-      ),
-      body,
-    });
+    let filePath = resolve(CLIENT_DIR, pathname === '/' ? 'index.html' : pathname.slice(1));
 
-    // Get response from handler
-    const response = await handler(webRequest);
+    // Security: prevent directory traversal
+    if (!filePath.startsWith(CLIENT_DIR)) {
+      res.writeHead(403, { 'Content-Type': 'text/plain' });
+      res.end('Forbidden');
+      return;
+    }
 
-    // Write response
-    res.writeHead(response.status, Object.fromEntries(response.headers));
-    
-    if (response.body) {
-      res.end(await response.text());
+    // Check if file exists
+    if (existsSync(filePath)) {
+      const stats = require('fs').statSync(filePath);
+      
+      if (stats.isDirectory()) {
+        // If directory, try index.html
+        filePath = resolve(filePath, 'index.html');
+        if (!existsSync(filePath)) {
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          res.end('Not Found');
+          return;
+        }
+      }
+
+      const mimeType = getMimeType(filePath);
+      res.writeHead(200, {
+        'Content-Type': mimeType,
+        'Cache-Control': filePath.includes('assets') 
+          ? 'public, max-age=31536000, immutable'
+          : 'public, max-age=0, must-revalidate',
+      });
+
+      createReadStream(filePath).pipe(res);
     } else {
-      res.end();
+      // Fallback to index.html for SPA routing
+      const indexPath = resolve(CLIENT_DIR, 'index.html');
+      if (existsSync(indexPath)) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        createReadStream(indexPath).pipe(res);
+      } else {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not Found');
+      }
     }
   } catch (error) {
-    console.error('💥 Error:', error?.message || error);
+    console.error('❌ Server error:', error?.message || error);
     res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end(`Internal Server Error: ${error?.message || 'Unknown'}`);
+    res.end('Internal Server Error');
   }
 });
 
@@ -58,6 +97,7 @@ server.listen(PORT, '0.0.0.0', () => {
 🚀 Server running at http://localhost:${PORT}
 📦 Node.js ${process.version}
 ⚙️  Port: ${PORT}
+📁 Serving: ${CLIENT_DIR}
   `);
 });
 
