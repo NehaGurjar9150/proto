@@ -211,30 +211,34 @@ http://localhost:5173
 
 ## 🚀 Render Pe Deploy Karne Ke Steps
 
-> ⚠️ **Important:** Sirf **frontend** Render pe deploy hoga. Backend (Edge Function) toh already Lovable Cloud pe live hai — usko alag deploy karne ki zarurat nahi.
+> ⚠️ **IMPORTANT:** Ye app **SSR** (Server-Side Rendered) hai, isliye Render pe **Web Service** banaना padega, Static Site nahi!
 
 ### Step 1: GitHub Pe Code Push Karo
-Lovable editor me top-right **GitHub** button → Connect → repo create ho jayegi.
+```bash
+git push -u origin main
+```
 
 ### Step 2: Render Account Banao
 [https://render.com](https://render.com) pe sign up karo (GitHub se login karna easiest hai).
 
-### Step 3: New Static Site Create Karo
+### Step 3: New Web Service Banao (⚠️ Static Site NAHI!)
 
-1. Render dashboard → **New +** → **Static Site**
+1. Render dashboard → **New +** → **Web Service** ⭐ (NOT Static Site)
 2. Apni GitHub repo select karo
 3. Settings fill karo:
 
    | Field | Value |
    |---|---|
-   | **Name** | `neha-portfolio` (kuch bhi) |
+   | **Name** | `neha-portfolio` |
+   | **Environment** | `Node` |
+   | **Region** | (default) |
    | **Branch** | `main` |
    | **Build Command** | `npm install && npm run build` |
-   | **Publish Directory** | `dist` |
+   | **Start Command** | `node dist/server/index.js` |
 
 ### Step 4: Environment Variables Add Karo
 
-Render dashboard → **Environment** tab → ye variables add karo:
+Render → **Environment** tab → Add:
 
 ```
 VITE_MONGODB_URI=mongodb+srv://jay-food-app:997763@cluster0.lvfyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
@@ -244,35 +248,19 @@ VITE_BACKEND_URL=https://ddehjkocxllhagbpqajr.functions.supabase.co/ask-neha
 GROQ_API_KEY=gsk_SkpNAcjMdI3HKJePJ4DrWGdyb3FYkYG7xJ8T0L3lOAKvZJwMFnhR2D
 ```
 
-> ⚠️ **Frontend Variables (VITE_*)** — Render automatically injects ye build ke time
-> ⚠️ **Backend URL** — Supabase Edge Function ka public URL
-> ⚠️ **GROQ_API_KEY** — Server-side secret (frontend me expose nahi hoga)
+### Step 5: Create Web Service!
+Click **"Create Web Service"** button
+- Build chalega (~1-2 min)
+- Server start hoga
+- Live URL mil jayega! 🎉
 
-### Step 5: SPA Routing Fix (Important!)
+### Step 6: Test
+1. Render URL open karo
+2. Full portfolio page + AI chatbot dekho
+3. Browser DevTools (F12) → Console → no errors?
 
-Single Page App hai, isliye refresh pe 404 na aaye — **Redirects/Rewrites** add karo:
-
-Render dashboard → **Redirects/Rewrites** → Add:
-- **Source:** `/*`
-- **Destination:** `/index.html`
-- **Action:** `Rewrite`
-
-### Step 6: Deploy!
-
-**Create Static Site** click karo. Render automatically:
-1. GitHub se code pull karega
-2. `npm install && npm run build` chalayega
-3. `dist/` folder serve karega
-4. Free `.onrender.com` URL dega (e.g. `https://neha-portfolio.onrender.com`)
-
-### Step 7: Verify Karo
-
-1. URL kholo
-2. AI chatbot (Ask Neha) test karo — agar reply aa raha hai → backend bhi sahi connected hai ✅
-3. DevTools → Network tab → check karo ki Groq API key kahin expose toh nahi ho rahi (nahi honi chahiye)
-
-### Step 8 (Optional): Custom Domain
-Render dashboard → **Settings** → **Custom Domain** → apna domain add karo (e.g. `nehagurjar.com`).
+### Step 7 (Optional): Custom Domain
+Render → **Custom Domain** → apna domain connect karo
 
 ---
 
