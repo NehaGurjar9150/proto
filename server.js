@@ -1,5 +1,5 @@
 import { createServer } from 'http';
-import { createReadStream, existsSync } from 'fs';
+import { createReadStream, existsSync, statSync } from 'fs';
 import { resolve, extname } from 'path';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -53,7 +53,7 @@ const server = createServer(async (req, res) => {
 
     // Check if file exists
     if (existsSync(filePath)) {
-      const stats = require('fs').statSync(filePath);
+      const stats = statSync(filePath);
       
       if (stats.isDirectory()) {
         // If directory, try index.html
