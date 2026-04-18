@@ -160,18 +160,18 @@ Edge function **Lovable Cloud pe automatically deploy** ho jaata hai jab bhi cod
          │
          ▼
 ┌─────────────────────────────────┐
-│  supabase.functions.invoke(     │
-│    "ask-neha",                  │
-│    { body: { messages, prompt }}│
-│  )                              │
+│  fetch() to Edge Function       │
+│  (Supabase ask-neha)            │
+│  { messages, prompt }           │
 └────────┬────────────────────────┘
          │ (HTTPS)
          ▼
 ┌─────────────────────────────────┐
 │  Edge Function: ask-neha        │
-│  (runs on Lovable Cloud)        │
+│  (runs on Supabase)             │
 │  - Adds system prompt           │
 │  - Calls Groq with secret key   │
+│  - Secured: API key nahi expose |
 └────────┬────────────────────────┘
          │
          ▼
@@ -240,10 +240,13 @@ Render dashboard → **Environment** tab → ye variables add karo:
 VITE_MONGODB_URI=mongodb+srv://jay-food-app:997763@cluster0.lvfyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 MONGODB_URI=mongodb+srv://jay-food-app:997763@cluster0.lvfyc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 MONGODB_DB_NAME=neha_didi_portfolio
-GROQ_API_KEY=<apni Groq API key>
+VITE_BACKEND_URL=https://ddehjkocxllhagbpqajr.functions.supabase.co/ask-neha
+GROQ_API_KEY=gsk_SkpNAcjMdI3HKJePJ4DrWGdyb3FYkYG7xJ8T0L3lOAKvZJwMFnhR2D
 ```
 
-> Values `.env` file se copy kar lo (root me hai).
+> ⚠️ **Frontend Variables (VITE_*)** — Render automatically injects ye build ke time
+> ⚠️ **Backend URL** — Supabase Edge Function ka public URL
+> ⚠️ **GROQ_API_KEY** — Server-side secret (frontend me expose nahi hoga)
 
 ### Step 5: SPA Routing Fix (Important!)
 
@@ -273,7 +276,55 @@ Render dashboard → **Settings** → **Custom Domain** → apna domain add karo
 
 ---
 
-## 🔑 Environment Variables
+## � Troubleshooting: White Screen on Render
+
+Agar Render pe sirf white screen aaye to:
+
+### 1️⃣ **Environment Variables Check Karo**
+```bash
+Render Dashboard → Your App → Environment Tab
+```
+Ye sab variables add hain check karo:
+- ✅ `VITE_MONGODB_URI` 
+- ✅ `VITE_BACKEND_URL`
+- ✅ `GROQ_API_KEY`
+- ✅ `MONGODB_DB_NAME`
+
+**Missing ko add kar!**
+
+### 2️⃣ **Browser Console Check Karo**
+```
+F12 → Console tab → Red errors dikha?
+```
+Agar error dikh rahe hain, screenshot lo aur debug.
+
+### 3️⃣ **Network Tab Check Karo**
+```
+F12 → Network tab → Reload page
+```
+- HTML, CSS, JS files load ho rahe hain?
+- API calls fail to nahi?
+
+### 4️⃣ **Force Redeploy**
+```
+Render Dashboard → Manual Deploy → Deploy Latest Commit
+```
+Env variables set karne ke baad ye zaroor karo!
+
+### 5️⃣ **Clear Browser Cache**
+```
+Ctrl + Shift + Delete → Clear Cache → Reload
+```
+
+### 6️⃣ **Check Build Logs**
+```
+Render Dashboard → Your App → Logs tab
+Build output dekho — errors dikha?
+```
+
+---
+
+## �🔑 Environment Variables
 
 | Variable | Where | Purpose |
 |---|---|---|

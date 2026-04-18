@@ -31,7 +31,7 @@ export function Hero() {
       className="relative min-h-screen flex items-center pt-24 pb-16 px-6 md:px-10"
     >
       {/* grid backdrop */}
-      <div className="absolute inset-0 grid-bg opacity-40 [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
+      <div className="absolute inset-0 grid-bg opacity-40 mask-[radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
 
       {/* nebula glow */}
       <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-cyan/20 blur-[120px]" />
@@ -87,7 +87,7 @@ export function Hero() {
           <div className="flex flex-wrap gap-3 pt-2">
             <a
               href="#projects"
-              className="group relative px-6 py-3 rounded-md bg-gradient-to-r from-cyan to-magenta text-background font-medium text-sm overflow-hidden"
+              className="group relative px-6 py-3 rounded-md bg-linear-to-r from-cyan to-magenta text-background font-medium text-sm overflow-hidden"
             >
               <span className="relative z-10 flex items-center gap-2">
                 Explore Missions
@@ -153,7 +153,7 @@ export function Hero() {
               </div>
               <div className="h-1 rounded-full bg-secondary overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-cyan to-magenta rounded-full"
+                  className="h-full bg-linear-to-r from-cyan to-magenta rounded-full"
                   style={{ width: "98.7%" }}
                 />
               </div>
@@ -162,7 +162,7 @@ export function Hero() {
                 <span className="text-magenta">∞</span>
               </div>
               <div className="h-1 rounded-full bg-secondary overflow-hidden">
-                <div className="h-full w-full bg-gradient-to-r from-magenta to-gold rounded-full" />
+                <div className="h-full w-full bg-linear-to-r from-magenta to-gold rounded-full" />
               </div>
             </div>
           </div>

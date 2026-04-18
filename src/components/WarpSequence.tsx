@@ -34,27 +34,29 @@ async function askNeha(history: Line[], prompt: string): Promise<string> {
     }));
 
   try {
-    const response = await fetch(
-      "https://ddehjkocxllhagbpqajr.functions.supabase.co/ask-neha",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ""}`,
-        },
-        body: JSON.stringify({ messages, prompt }),
-      }
-    );
+    // Use the Supabase edge function URL - Groq API is called server-side
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 
+      "https://ddehjkocxllhagbpqajr.functions.supabase.co/ask-neha";
+    
+    const response = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ messages, prompt }),
+    });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Backend error: ${response.status}`);
     }
 
     const data = await response.json();
     if (data?.error) throw new Error(data.error);
     return data?.reply ?? "(no reply)";
   } catch (error) {
-    throw new Error(error instanceof Error ? error.message : "request failed");
+    const msg = error instanceof Error ? error.message : "request failed";
+    console.error("askNeha error:", msg);
+    throw new Error(msg);
   }
 }
 
@@ -370,7 +372,7 @@ export function WarpSequence() {
 
             <div
               ref={scrollRef}
-              className="p-4 md:p-5 font-mono text-xs md:text-sm h-[55vh] max-h-[480px] overflow-y-auto space-y-1.5 leading-relaxed"
+              className="p-4 md:p-5 font-mono text-xs md:text-sm h-[55vh] max-h-120 overflow-y-auto space-y-1.5 leading-relaxed"
               onClick={() => inputRef.current?.focus()}
             >
               {lines.map((l, i) => {
