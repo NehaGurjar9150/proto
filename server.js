@@ -42,48 +42,39 @@ const server = createServer(async (req, res) => {
       pathname = pathname.slice(0, -1);
     }
 
-    let filePath = resolve(CLIENT_DIR, pathname === '/' ? 'index.html' : pathname.slice(1));
+    // Handle asset requests
+    if (pathname.startsWith('/assets/')) {
+      const filePath = resolve(CLIENT_DIR, pathname.slice(1));
+      
+      // Security: prevent directory traversal
+      if (!filePath.startsWith(CLIENT_DIR)) {
+        res.writeHead(403, { 'Content-Type': 'text/plain' });
+        res.end('Forbidden');
+        return;
+      }
 
-    // Security: prevent directory traversal
-    if (!filePath.startsWith(CLIENT_DIR)) {
-      res.writeHead(403, { 'Content-Type': 'text/plain' });
-      res.end('Forbidden');
-      return;
+      if (existsSync(filePath)) {
+        const mimeType = getMimeType(filePath);
+        res.writeHead(200, {
+          'Content-Type': mimeType,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        });
+        createReadStream(filePath).pipe(res);
+        return;
+      }
     }
 
-    // Check if file exists
-    if (existsSync(filePath)) {
-      const stats = statSync(filePath);
-      
-      if (stats.isDirectory()) {
-        // If directory, try index.html
-        filePath = resolve(filePath, 'index.html');
-        if (!existsSync(filePath)) {
-          res.writeHead(404, { 'Content-Type': 'text/plain' });
-          res.end('Not Found');
-          return;
-        }
-      }
-
-      const mimeType = getMimeType(filePath);
-      res.writeHead(200, {
-        'Content-Type': mimeType,
-        'Cache-Control': filePath.includes('assets') 
-          ? 'public, max-age=31536000, immutable'
-          : 'public, max-age=0, must-revalidate',
+    // For everything else, serve index.html (SPA routing)
+    const indexPath = resolve(CLIENT_DIR, 'index.html');
+    if (existsSync(indexPath)) {
+      res.writeHead(200, { 
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=0, must-revalidate',
       });
-
-      createReadStream(filePath).pipe(res);
+      createReadStream(indexPath).pipe(res);
     } else {
-      // Fallback to index.html for SPA routing
-      const indexPath = resolve(CLIENT_DIR, 'index.html');
-      if (existsSync(indexPath)) {
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        createReadStream(indexPath).pipe(res);
-      } else {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('Not Found');
-      }
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('Not Found');
     }
   } catch (error) {
     console.error('❌ Server error:', error?.message || error);
