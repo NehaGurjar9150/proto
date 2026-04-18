@@ -234,7 +234,7 @@ git push -u origin main
    | **Region** | (default) |
    | **Branch** | `main` |
    | **Build Command** | `npm install && npm run build` |
-   | **Start Command** | `node dist/server/index.js` |
+   | **Start Command** | `npm start` |
 
 ### Step 4: Environment Variables Add Karo
 
