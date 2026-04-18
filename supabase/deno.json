@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "start": "deno run -A --watch supabase/functions/ask-neha/index.ts"
+  },
+  "imports": {},
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "target": "ES2020"
+  }
+}

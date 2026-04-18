@@ -1,0 +1,4 @@
+project_id = "ddehjkocxllhagbpqajr"
+
+[functions.ask-neha]
+verify_jwt = false
